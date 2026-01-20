@@ -3,7 +3,7 @@ import { initializeApplication } from './app.js';
 import { loadEnv, getEnv } from './infrastructure/env/env.js';
 import { dbSetup } from './infrastructure/prisma/prisma.js';
 import { redisClient, redisSetup } from './infrastructure/redis/redis.js';
-import { timeStamp } from 'node:console';
+import { appLogger } from './infrastructure/logger/logger.js';
 
 const application = initializeApplication();
 const applicationServer: Server = createServer(application);
@@ -11,15 +11,15 @@ const applicationServer: Server = createServer(application);
 async function initializeServer(applicationServer: Server): Promise<void> {
         loadEnv();
 
-        console.log('.....ENVIRONMENT VARIABLES LOADED SUCESSFULLY');
+        appLogger.info('.....ENVIRONMENT VARIABLES LOADED SUCESSFULLY');
+
         const envConfig = getEnv();
 
         const PORT = envConfig.PORT;
-        console.log('port : ', PORT);
-
-        await redisSetup.connect();
 
         await dbSetup.connectDb();
+
+        await redisSetup.connect();
 
         applicationServer.listen(PORT, () => {
                 console.log(`....SERVER RUNNING ON PORT : ${PORT}`);

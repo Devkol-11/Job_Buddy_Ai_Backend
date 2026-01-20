@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../../generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { getEnv } from '../env/env.js';
+import { appLogger } from '../logger/logger.js';
 
 const envConfig = getEnv();
 export class PrismaSingleton {
@@ -10,6 +11,7 @@ export class PrismaSingleton {
         private isConnected: boolean = false;
 
         private constructor() {
+                appLogger.info('INSTANTIATING DB CONSTRUCTOR');
                 this.adapter = new PrismaPg({ connectionString: envConfig.DATABASE_URL });
                 this.client = new PrismaClient({ adapter: this.adapter });
         }
@@ -28,19 +30,28 @@ export class PrismaSingleton {
 
         public async connectDb(): Promise<void> {
                 if (this.isConnected) return;
+
                 const client = this.getClient();
-                console.log('....ATTEMPTING TO CONNECT TO THE DATABASE');
+                appLogger.info('....ATTEMPTING TO CONNECT TO THE DATABASE');
+
                 await client.$connect();
-                console.log('....DATABASE CONNECTED SUCCESSFULLY');
+
+                appLogger.info('....DATABASE CONNECTED SUCCESSFULLY');
+
                 this.isConnected = true;
         }
 
         public async disConnectDb(): Promise<void> {
                 if (!this.isConnected) return;
+
                 const client = this.getClient();
-                console.log('....ATTEMPTING TO DISCONNECT FROM THE DATABASE');
+
+                appLogger.info('....ATTEMPTING TO DISCONNECT FROM THE DATABASE');
+
                 await client.$disconnect();
-                console.log('....DATABASE DISCONNECTED SUCCESSFULLY');
+
+                appLogger.info('....DATABASE DISCONNECTED SUCCESSFULLY');
+
                 this.isConnected = false;
         }
 

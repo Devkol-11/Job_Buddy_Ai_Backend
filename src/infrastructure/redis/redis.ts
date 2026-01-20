@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis';
 import { getEnv } from '../env/env.js';
+import { appLogger } from '../logger/logger.js';
 
 const envConfig = getEnv();
 const redisUrl = envConfig.REDIS_URL;
@@ -10,7 +11,9 @@ export class RedisSingleton {
         private isConnected: boolean = false;
 
         private constructor() {
-                this.client = new Redis(redisUrl);
+                this.client = new Redis(redisUrl, {
+                        lazyConnect: true
+                });
         }
 
         static getInstance() {
@@ -27,19 +30,29 @@ export class RedisSingleton {
 
         public async connect(): Promise<void> {
                 if (this.isConnected == true) return;
+
                 const client = this.getClient();
-                console.log('....ATTEMPTING CONNECTION TO REDIS');
+
+                appLogger.warn('....ATTEMPTING CONNECTION TO REDIS');
+
                 await client.connect();
-                console.log('....REDIS CONNECTED SUCCESSFULLY');
+
+                appLogger.warn('....REDIS CONNECTED SUCCESSFULLY');
+
                 this.isConnected = true;
         }
 
         public async disConnect() {
                 if (this.isConnected == false) return;
+
                 const client = this.getClient();
-                console.log('....DISCONNECTING FROM REDIS');
+
+                appLogger.warn('....DISCONNECTING FROM REDIS');
+
                 client.disconnect();
-                console.log('....REDIS DISCONNECTED SUCCESSFULLY');
+
+                appLogger.warn('....REDIS DISCONNECTED SUCCESSFULLY');
+
                 this.isConnected = false;
         }
 

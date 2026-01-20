@@ -12,9 +12,11 @@ let envConfig: AppEnvConfig | undefined = undefined;
 
 export function loadEnv() {
         const fileName = import.meta.url;
+
         const dirName = fileURLToPath(fileName);
 
-        const envPath = path.resolve(dirName, '../../../', '.env');
+        // Going up 4 levels to reach the root where .env lives
+        const envPath = path.resolve(dirName, '..', '..', '..', '..', '.env');
 
         const result = dotenv.config({ path: envPath });
 
@@ -37,3 +39,5 @@ export function getEnv(): AppEnvConfig {
 
         return envConfig;
 }
+
+loadEnv();
