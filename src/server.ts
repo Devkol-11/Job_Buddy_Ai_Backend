@@ -1,9 +1,9 @@
 import { createServer, type Server } from 'node:http';
 import { initializeApplication } from './app.js';
-import { loadEnv, getEnv } from './infrastructure/env/env.js';
-import { dbSetup } from './infrastructure/prisma/prisma.js';
-import { redisClient, redisSetup } from './infrastructure/redis/redis.js';
-import { appLogger } from './infrastructure/logger/logger.js';
+import { loadEnv, getEnv } from './config/env/env.js';
+import { dbSetup } from './config/prisma/prisma.js';
+import { redisClient, redisSetup } from './config/redis/redis.js';
+import { appLogger } from './config/logger/logger.js';
 
 const application = initializeApplication();
 const applicationServer: Server = createServer(application);
@@ -55,7 +55,7 @@ process.on('uncaughtException', (err) => {
         process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, Promise) => {
+process.on('unhandledRejection', (reason, _Promise) => {
         const errMessage = reason instanceof Error ? reason.message : reason;
         console.error(
                 JSON.stringify({

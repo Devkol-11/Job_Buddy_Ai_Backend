@@ -1,7 +1,7 @@
 export abstract class Entity<T> {
-        protected id: number;
-        props: T;
-        constructor(props: T, id: number) {
+        protected id: string;
+        props: Omit<T, 'id'>;
+        constructor(props: Omit<T, 'id'>, id: string) {
                 this.id = id;
                 this.props = props;
         }

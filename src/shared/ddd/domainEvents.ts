@@ -1,4 +1,4 @@
 export interface IDomainEvents {
-        eventId: string;
-        data: any;
+        eventName: string;
+        data: object;
 }

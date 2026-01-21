@@ -14,52 +14,83 @@ datasource db {
 }
 
 
-model Source {
+model IdentityUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  status       IdentityStatus
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relation: one user has many tokens
+  tokens       Token[]
+}
+
+model Token {
+  id             String   @id @default(uuid())
+  identityUserId String
+  value          String   @unique
+  expiresAt      DateTime
+  revoked        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relation to aggregate owner
+  user IdentityUser @relation(fields: [identityUserId], references: [id])
+}
+
+enum IdentityStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model FeedSource {
   id          String   @id @default(uuid())
   name        String
-  feedUrl     String   @unique
+  type        FeedType
+  endpointUrl String
   isActive    Boolean  @default(true)
+  lastFetchedAt DateTime?
+  createdAt   DateTime @default(now())
+}
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  items      ContentItem[]
-  ingestions IngestionRun[]
+enum FeedType {
+  RSS
+  ATOM
+  CUSTOM_XML
 }
 
 model ContentItem {
-  id          String   @id @default(uuid())
+  id           String   @id @default(uuid())
+  feedSourceId String
+  externalId   String
+  title        String
+  body         String?
+  publishedAt  DateTime
+  contentType  ContentType
+  createdAt    DateTime @default(now())
 
-  sourceId    String
-  externalId  String   // ID from XML (guid, link, etc.)
-
-  title       String
-  summary     String?
-  url         String?
-  publishedAt DateTime?
-
-  createdAt   DateTime @default(now())
-
-  source      Source   @relation(fields: [sourceId], references: [id])
-
-  @@unique([sourceId, externalId])
+  @@unique([feedSourceId, externalId])
 }
 
-model IngestionRun {
-  id        String   @id @default(uuid())
-  sourceId  String
-
-  status    IngestionStatus
-  error     String?
-
-  startedAt DateTime @default(now())
-  finishedAt DateTime?
-
-  source    Source   @relation(fields: [sourceId], references: [id])
+enum ContentType {
+  NEWS
+  JOB
+  BLOG
 }
 
-enum IngestionStatus {
-  PENDING
-  SUCCESS
-  FAILED
+model AlertUser {
+  id              String   @id @default(uuid())
+  identityUserId  String
+  email           String
+  isPaused        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+model AlertRule {
+  id           String   @id @default(uuid())
+  alertUserId  String
+  contentType  ContentType
+  keyword      String?
+  createdAt    DateTime @default(now())
 }
