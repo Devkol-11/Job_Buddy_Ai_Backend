@@ -6,5 +6,5 @@ export interface IdentityRepositoryPort {
         save(entity: IdentityUser, trx?: Prisma.TransactionClient): Promise<IdentityUser>;
         findById(id: string): Promise<IdentityUser | null>;
         findByEmail(email: string): Promise<IdentityUser | null>;
-        existsByemail(email: string): Promise<boolean>;
+        existsByEmail(email: string): Promise<boolean>;
 }

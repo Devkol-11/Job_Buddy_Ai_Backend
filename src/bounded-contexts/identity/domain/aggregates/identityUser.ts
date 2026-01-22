@@ -1,8 +1,8 @@
 import { AggregateRoot } from '@src/shared/ddd/agggragateRoot.js';
-import { Token } from '../entities/token.js';
+import { RefreshToken } from '../entities/refreshToken.js';
 import { randomUUID } from 'crypto';
 import { IdentityStatus } from '../enums/domainEnums.js';
-import { tokenAddedEvent } from '../events/tokenAddedEvent.js';
+import { PasswordUpdatedEvent, TokenAddedEvent, UserRegisteredEvent } from '../events/domainEvents.js';
 
 interface IdentityUserProps {
         id: string;
@@ -13,17 +13,19 @@ interface IdentityUserProps {
         status: IdentityStatus;
         createdAt: Date;
         updatedAt: Date;
-        tokens: Token[];
+        tokens: RefreshToken[];
 }
 
 export class IdentityUser extends AggregateRoot<IdentityUserProps> {
-        private constructor(props: Omit<IdentityUserProps, 'id'>, id: string) {
+        private constructor(readonly props: Omit<IdentityUserProps, 'id'>, readonly id: string) {
                 super(props, id);
         }
 
-        static create(props: Omit<IdentityUserProps, 'id' | 'createdAt' | 'updatedAt'>) {
+        static create(
+                props: Omit<IdentityUserProps, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'tokens'>
+        ): IdentityUser {
                 const id = randomUUID();
-                return new IdentityUser(
+                const user = new IdentityUser(
                         {
                                 email: props.email,
                                 firstName: props.firstName,
@@ -36,20 +38,82 @@ export class IdentityUser extends AggregateRoot<IdentityUserProps> {
                         },
                         id
                 );
+
+                const event = new UserRegisteredEvent({ userId: id, email: props.email });
+
+                user.addDomainEvent(event);
+
+                return user;
+        }
+
+        static rehydrate(props: IdentityUserProps): IdentityUser {
+                return new IdentityUser(
+                        {
+                                email: props.email,
+                                firstName: props.firstName,
+                                lastName: props.lastName,
+                                passwordHash: props.passwordHash,
+                                status: props.status,
+                                createdAt: props.createdAt,
+                                updatedAt: props.updatedAt,
+                                tokens: props.tokens
+                        },
+                        props.id
+                );
         }
 
         updatePassword(passwordHash: string) {
                 this.props.passwordHash = passwordHash;
                 this.props.updatedAt = new Date();
-        }
-
-        addToken(token: Token) {
-                this.props.tokens.push(token);
-                const event = new tokenAddedEvent({ userId: this.id, token: token.props.value });
+                const event = new PasswordUpdatedEvent({ userId: this.id, email: this.email });
                 this.addDomainEvent(event);
         }
 
+        addToken(token: RefreshToken) {
+                this.props.tokens.push(token);
+                const event = new TokenAddedEvent({ userId: this.id, token: token.props.value });
+                this.addDomainEvent(event);
+        }
+
+        revokeToken(tokenValue: string): boolean {
+                const token = this.props.tokens.find((t) => t.props.value === tokenValue);
+                if (!token) return false;
+
+                token.revoke(); // Calls the revoke() method on the Token entity
+                this.props.updatedAt = new Date();
+
+                // Optional: addDomainEvent(new TokenRevokedEvent(...))
+                return true;
+        }
+
         getProps() {
-                return { ...this.props };
+                return { id: this.id, ...this.props };
+        }
+
+        getClaims() {
+                return {
+                        id: this.id,
+                        email: this.props.email
+                };
+        }
+
+        get userId() {
+                return this.id;
+        }
+
+        get email() {
+                return this.props.email;
+        }
+
+        get firstName() {
+                return this.props.firstName;
+        }
+
+        get lastName() {
+                return this.props.lastName;
+        }
+
+        get status() {
+                return this.props.status;
         }
 }

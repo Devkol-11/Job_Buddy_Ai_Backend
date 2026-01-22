@@ -6,6 +6,8 @@ interface AppEnvConfig {
         PORT: number;
         DATABASE_URL: string;
         REDIS_URL: string;
+        NODE_ENV: string;
+        JWT_SECRET: string;
 }
 
 let envConfig: AppEnvConfig | undefined = undefined;
@@ -21,14 +23,22 @@ export function loadEnv() {
         const result = dotenv.config({ path: envPath });
 
         if (result.error || !process.env.DATABASE_URL) {
-                throw new Error('Failed to load environment variables');
+                const error = new Error('Failed to load environment variables');
+                const refinedError = {
+                        name: error.name.toUpperCase(),
+                        message: error.message.toUpperCase(),
+                        cause: error.cause,
+                        stack: error.stack
+                };
+                throw JSON.stringify(refinedError);
         }
 
         envConfig = Object.freeze({
                 PORT: process.env.PORT,
                 NODE_ENV: process.env.NODE_ENV,
                 DATABASE_URL: process.env.DATABASE_URL,
-                REDIS_URL: process.env.REDIS_URL
+                REDIS_URL: process.env.REDIS_URL,
+                JWT_SECRET: process.env.JWT_SECRET
         });
 }
 

@@ -15,25 +15,28 @@ datasource db {
 
 
 model IdentityUser {
-  id           String   @id @default(uuid())
+  id           String   @id @db.Uuid
+  firstName String
+  lastName String
   email        String   @unique
   passwordHash String
   status       IdentityStatus
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  createdAt    DateTime 
+  updatedAt    DateTime 
 
   // Relation: one user has many tokens
   tokens       Token[]
 }
 
 model Token {
-  id             String   @id @default(uuid())
+  id             String   @id @db.Uuid
   identityUserId String
   value          String   @unique
   expiresAt      DateTime
-  revoked        Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isRevoked        Boolean  @default(false)
+  createdAt      DateTime 
+  updatedAt      DateTime 
 
   // Relation to aggregate owner
   user IdentityUser @relation(fields: [identityUserId], references: [id])
@@ -45,13 +48,13 @@ enum IdentityStatus {
 }
 
 model FeedSource {
-  id          String   @id @default(uuid())
+  id          String   @id @db.Uuid
   name        String
   type        FeedType
   endpointUrl String
   isActive    Boolean  @default(true)
   lastFetchedAt DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime 
 }
 
 enum FeedType {
@@ -61,14 +64,14 @@ enum FeedType {
 }
 
 model ContentItem {
-  id           String   @id @default(uuid())
+  id           String   @id @db.Uuid
   feedSourceId String
   externalId   String
   title        String
   body         String?
   publishedAt  DateTime
   contentType  ContentType
-  createdAt    DateTime @default(now())
+  createdAt    DateTime 
 
   @@unique([feedSourceId, externalId])
 }
@@ -80,17 +83,17 @@ enum ContentType {
 }
 
 model AlertUser {
-  id              String   @id @default(uuid())
+  id              String   @id @db.Uuid
   identityUserId  String
   email           String
   isPaused        Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  createdAt       DateTime 
 }
 
 model AlertRule {
-  id           String   @id @default(uuid())
+  id           String   @id @db.Uuid
   alertUserId  String
   contentType  ContentType
   keyword      String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime 
 }
