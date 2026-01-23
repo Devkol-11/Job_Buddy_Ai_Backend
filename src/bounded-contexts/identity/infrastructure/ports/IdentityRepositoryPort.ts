@@ -1,5 +1,6 @@
 import { type Prisma } from 'generated/prisma/client.js';
 import { IdentityUser } from '../../domain/aggregates/identityUser.js';
+import { ResetToken } from '../../domain/entities/resetToken.js';
 
 export interface IdentityRepositoryPort {
         create(entity: IdentityUser, trx?: Prisma.TransactionClient): Promise<void>;
@@ -7,4 +8,5 @@ export interface IdentityRepositoryPort {
         findById(id: string): Promise<IdentityUser | null>;
         findByEmail(email: string): Promise<IdentityUser | null>;
         existsByEmail(email: string): Promise<boolean>;
+        findByResetToken(token: string): Promise<IdentityUser | null>;
 }

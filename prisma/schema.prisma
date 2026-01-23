@@ -13,32 +13,44 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model IdentityUser {
-  id           String   @id @db.Uuid
-  firstName String
-  lastName String
-  email        String   @unique
+  id           String         @id @db.Uuid // This is a UUID
+  firstName    String
+  lastName     String
+  email        String         @unique
   passwordHash String
   status       IdentityStatus
+  createdAt    DateTime
+  updatedAt    DateTime
 
-  createdAt    DateTime 
-  updatedAt    DateTime 
-
-  // Relation: one user has many tokens
-  tokens       Token[]
+  refreshTokens RefreshToken[]
+  resetTokens   ResetToken[]
 }
 
-model Token {
+model RefreshToken {
   id             String   @id @db.Uuid
-  identityUserId String
+  // FIX: Added @db.Uuid to match IdentityUser.id
+  identityUserId String   @db.Uuid
   value          String   @unique
   expiresAt      DateTime
-  isRevoked        Boolean  @default(false)
-  createdAt      DateTime 
-  updatedAt      DateTime 
+  isRevoked      Boolean  @default(false)
+  createdAt      DateTime
+  updatedAt      DateTime
 
-  // Relation to aggregate owner
+  user IdentityUser @relation(fields: [identityUserId], references: [id])
+}
+
+model ResetToken {
+  id             String   @id @db.Uuid
+  // FIX: Added @db.Uuid to match IdentityUser.id
+  identityUserId String   @db.Uuid
+  value          String
+  expiresAt      DateTime
+  isExpired      Boolean
+  isValid        Boolean
+  createdAt      DateTime
+  updatedAt      DateTime
+
   user IdentityUser @relation(fields: [identityUserId], references: [id])
 }
 
@@ -48,13 +60,13 @@ enum IdentityStatus {
 }
 
 model FeedSource {
-  id          String   @id @db.Uuid
-  name        String
-  type        FeedType
-  endpointUrl String
-  isActive    Boolean  @default(true)
+  id            String    @id @db.Uuid
+  name          String
+  type          FeedType
+  endpointUrl   String
+  isActive      Boolean   @default(true)
   lastFetchedAt DateTime?
-  createdAt   DateTime 
+  createdAt     DateTime
 }
 
 enum FeedType {
@@ -64,14 +76,14 @@ enum FeedType {
 }
 
 model ContentItem {
-  id           String   @id @db.Uuid
+  id           String      @id @db.Uuid
   feedSourceId String
   externalId   String
   title        String
   body         String?
   publishedAt  DateTime
   contentType  ContentType
-  createdAt    DateTime 
+  createdAt    DateTime
 
   @@unique([feedSourceId, externalId])
 }
@@ -83,17 +95,18 @@ enum ContentType {
 }
 
 model AlertUser {
-  id              String   @id @db.Uuid
-  identityUserId  String
-  email           String
-  isPaused        Boolean  @default(false)
-  createdAt       DateTime 
+  id             String   @id @db.Uuid
+  // FIX: This likely also needs to match your IdentityUser if they are linked
+  identityUserId String   @db.Uuid
+  email          String
+  isPaused       Boolean  @default(false)
+  createdAt      DateTime
 }
 
 model AlertRule {
-  id           String   @id @db.Uuid
-  alertUserId  String
-  contentType  ContentType
-  keyword      String?
-  createdAt    DateTime 
+  id          String      @id @db.Uuid
+  alertUserId String
+  contentType ContentType
+  keyword     String?
+  createdAt   DateTime
 }

@@ -8,7 +8,8 @@
                 "build": "tsc",
                 "start": "node dist/server.js",
                 "db:client": "npx prisma generate",
-                "db:migrate": "npx prisma migrate"
+                "db:migrate": "npx prisma migrate",
+                "schema:format": "npx prisma format"
         },
         "keywords": [],
         "author": "",
@@ -46,6 +47,6 @@
                 "prisma": "^7.2.0",
                 "winston": "^3.19.0",
                 "xmlbuilder2": "^4.0.3",
-                "zod": "^4.3.5"
+                "zod": "^4.3.6"
         }
 }

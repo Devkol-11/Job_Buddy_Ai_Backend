@@ -1,7 +1,7 @@
 import { DomainErrors } from '../../domain/errors/domainErrors.js';
 import { DomainService } from '../../domain/service/domainService.js';
 import { IdentityRepositoryPort } from '../../infrastructure/ports/IdentityRepositoryPort.js';
-import { RefreshToken } from '../../domain/entities/refreshToken.js';
+import { ResetToken } from '../../domain/entities/resetToken.js';
 
 export class ForgotPassword {
         constructor(
@@ -12,21 +12,20 @@ export class ForgotPassword {
         async execute(email: string): Promise<{ message: string }> {
                 const user = await this.identityRepository.findByEmail(email);
 
-                // Security Tip: Even if user doesn't exist, we usually return a success
-                // message to prevent "Email Enumeration" attacks.
+                // Even if user doesn't exist, we return a success message to prevent "Email Enumeration" attacks.
                 if (!user) return { message: 'If an account exists, a reset link has been sent.' };
 
                 const { value, expiry } = this.domainService.generateResetToken();
 
-                // We use our RefreshToken entity or a specific ResetToken entity
+                // We use our  ResetToken entity
                 // Logic: Add this to the user's token collection
-                const resetToken = RefreshToken.create({
+                const resetToken = ResetToken.create({
                         value,
                         identityUserId: user.id,
                         expiresAt: expiry
                 });
 
-                user.addToken(resetToken);
+                user.addResetToken(resetToken);
                 await this.identityRepository.save(user);
 
                 // DISPATCH EVENT: UserForgotPasswordEvent (contains the token for the email service)

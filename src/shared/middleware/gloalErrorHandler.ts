@@ -15,17 +15,24 @@ export function applicationErrorHandler(
                 if ((err.type = 'Domain')) {
                         const statusCode = err.statusCode;
                         const message = err.message;
-                        HttpHelpers.sendError(res, statusCode, { error: message });
+                        HttpHelpers.sendError(res, statusCode, { status: 'error', error: message });
                 }
                 if ((err.type = 'Infrastructure')) {
                         const statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
                         const errorMessage = 'Internal Server Error';
-                        HttpHelpers.sendError(res, statusCode, { error: errorMessage });
+                        HttpHelpers.sendError(res, statusCode, { status: 'error', error: errorMessage });
                 }
         }
         if (err instanceof Error) {
                 HttpHelpers.sendError(res, HttpStatusCode.INTERNAL_SERVER_ERROR, {
+                        status: 'error',
                         message: 'Please try again later',
+                        error: err
+                });
+
+                HttpHelpers.sendError(res, HttpStatusCode.INTERNAL_SERVER_ERROR, {
+                        status: 'error',
+                        message: 'Internal server error , please try again later',
                         error: err
                 });
         }

@@ -14,11 +14,17 @@ export class RegisterUser {
         async execute(data: RegisterRequestDto): Promise<RegisterResponseDto> {
                 const { email, password, firstName, lastName } = data;
 
+                console.log(`entered usecase ----- ${email}`);
+
                 const userExists = await this.identityRepository.existsByEmail(email);
+
+                console.log('db operation to find user success');
 
                 if (userExists) throw new DomainErrors.UserAlreadyExistsError();
 
                 const passwordHash = await this.domainService.encryptPassword(password);
+
+                console.log('password encrypt success');
 
                 const identityUser = IdentityUser.create({
                         email,
@@ -35,7 +41,7 @@ export class RegisterUser {
                         expiresAt: expiry
                 });
 
-                identityUser.addToken(refreshToken);
+                identityUser.addRefreshToken(refreshToken);
 
                 await this.identityRepository.save(identityUser);
 

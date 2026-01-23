@@ -39,7 +39,7 @@ export class LoginUser {
                 });
 
                 // 4. Update Aggregate state (Add the new token)
-                identityUser.addToken(refreshToken);
+                identityUser.addRefreshToken(refreshToken);
 
                 // 5. Persist the Aggregate
                 await this.identityRepository.save(identityUser);

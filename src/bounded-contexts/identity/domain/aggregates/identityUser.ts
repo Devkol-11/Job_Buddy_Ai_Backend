@@ -1,8 +1,10 @@
 import { AggregateRoot } from '@src/shared/ddd/agggragateRoot.js';
 import { RefreshToken } from '../entities/refreshToken.js';
+import { ResetToken } from '../entities/resetToken.js';
 import { randomUUID } from 'crypto';
 import { IdentityStatus } from '../enums/domainEnums.js';
-import { PasswordUpdatedEvent, TokenAddedEvent, UserRegisteredEvent } from '../events/domainEvents.js';
+import { DomainEvents } from '../events/domainEvents.js';
+import { DomainErrors } from '../errors/domainErrors.js';
 
 interface IdentityUserProps {
         id: string;
@@ -13,7 +15,8 @@ interface IdentityUserProps {
         status: IdentityStatus;
         createdAt: Date;
         updatedAt: Date;
-        tokens: RefreshToken[];
+        refreshTokens: RefreshToken[];
+        resetTokens: ResetToken[];
 }
 
 export class IdentityUser extends AggregateRoot<IdentityUserProps> {
@@ -22,7 +25,10 @@ export class IdentityUser extends AggregateRoot<IdentityUserProps> {
         }
 
         static create(
-                props: Omit<IdentityUserProps, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'tokens'>
+                props: Omit<
+                        IdentityUserProps,
+                        'id' | 'createdAt' | 'updatedAt' | 'status' | 'refreshTokens' | 'resetTokens'
+                >
         ): IdentityUser {
                 const id = randomUUID();
                 const user = new IdentityUser(
@@ -34,12 +40,13 @@ export class IdentityUser extends AggregateRoot<IdentityUserProps> {
                                 status: IdentityStatus.ACTIVE,
                                 createdAt: new Date(),
                                 updatedAt: new Date(),
-                                tokens: []
+                                refreshTokens: [],
+                                resetTokens: []
                         },
                         id
                 );
 
-                const event = new UserRegisteredEvent({ userId: id, email: props.email });
+                const event = new DomainEvents.UserRegisteredEvent({ userId: id, email: props.email });
 
                 user.addDomainEvent(event);
 
@@ -56,33 +63,78 @@ export class IdentityUser extends AggregateRoot<IdentityUserProps> {
                                 status: props.status,
                                 createdAt: props.createdAt,
                                 updatedAt: props.updatedAt,
-                                tokens: props.tokens
+                                refreshTokens: props.refreshTokens,
+                                resetTokens: props.resetTokens
                         },
                         props.id
                 );
         }
 
-        updatePassword(passwordHash: string) {
-                this.props.passwordHash = passwordHash;
+        public addRefreshToken(token: RefreshToken) {
+                this.props.refreshTokens.push(token);
+        }
+
+        public addResetToken(token: ResetToken): void {
+                // Security Rule: Only one reset token should be active at a time - so we invalidate all at first
+                this.props.resetTokens.forEach((t) => t.invalidate());
+
+                this.props.resetTokens.push(token);
                 this.props.updatedAt = new Date();
-                const event = new PasswordUpdatedEvent({ userId: this.id, email: this.email });
+
+                // Raise event so the Email Service knows to send the link
+                const event = new DomainEvents.UserForgotPasswordEvent({
+                        userId: this.id,
+                        email: this.props.email,
+                        token: token.props.value // The hex string for the URL
+                });
+
                 this.addDomainEvent(event);
         }
 
-        addToken(token: RefreshToken) {
-                this.props.tokens.push(token);
-                const event = new TokenAddedEvent({ userId: this.id, token: token.props.value });
-                this.addDomainEvent(event);
+        /**
+         * Validates the token and updates password in one atomic move.
+         */
+        public resetPassword(tokenValue: string, newPasswordHash: string): void {
+                // 1. Find the token in the internal list
+                const token = this.props.resetTokens.find((t) => t.props.value === tokenValue);
+
+                // 2. Validate - Throw specific Domain Errors
+                if (!token) {
+                        throw new DomainErrors.InvalidResetTokenError(
+                                'Reset token not found in user account.'
+                        );
+                }
+
+                if (token.isExpired()) {
+                        throw new DomainErrors.InvalidResetTokenError('Reset token has expired.');
+                }
+
+                if (!token.props.isValid) {
+                        throw new DomainErrors.InvalidResetTokenError('Reset token has already been used.');
+                }
+
+                // 3. Apply State Changes
+                this.props.passwordHash = newPasswordHash;
+                this.props.updatedAt = new Date();
+
+                // 4. Invalidate the token
+                token.invalidate();
+
+                // 5. Add Domain Event
+                this.addDomainEvent(
+                        new DomainEvents.PasswordUpdatedEvent({
+                                userId: this.id,
+                                email: this.props.email
+                        })
+                );
         }
 
         revokeToken(tokenValue: string): boolean {
-                const token = this.props.tokens.find((t) => t.props.value === tokenValue);
+                const token = this.props.refreshTokens.find((t) => t.props.value === tokenValue);
                 if (!token) return false;
 
                 token.revoke(); // Calls the revoke() method on the Token entity
                 this.props.updatedAt = new Date();
-
-                // Optional: addDomainEvent(new TokenRevokedEvent(...))
                 return true;
         }
 

@@ -13,21 +13,21 @@ export class LogoutUser {
                 const { userId, refreshToken } = data;
 
                 // 1. Fetch the Aggregate
-                const identityUser = await this.identityRepository.findById(userId);
-                if (!identityUser) {
+                const user = await this.identityRepository.findById(userId);
+                if (!user) {
                         throw new DomainErrors.UserNotFoundError();
                 }
 
                 // 2. Domain Logic: Revoke the specific token
                 // You should add a 'revokeToken' method to your IdentityUser aggregate
-                const wasRevoked = identityUser.revokeToken(refreshToken);
+                const wasRevoked = user.revokeToken(refreshToken);
 
                 if (!wasRevoked) {
-                        throw new DomainErrors.InvalidTokenError();
+                        throw new DomainErrors.InvalidRefreshTokenError();
                 }
 
                 // 3. Persist state
-                await this.identityRepository.save(identityUser);
+                await this.identityRepository.save(user);
 
                 return {
                         message: 'Logged out successfully'
