@@ -22,12 +22,16 @@ export function IdentityRoutes() {
                         const { email, firstName, lastName, password } = req.body as RegisterRequestDto;
 
                         console.log('Calling the usecase...');
+
                         const response = await usecase.register.execute({
                                 email,
                                 firstName,
                                 lastName,
                                 password
                         });
+
+                        console.log('response gotten from usecase...');
+
                         const { tokens, ...data } = response;
 
                         return HttpHelpers.sendResponse(res, HttpStatusCode.CREATED, data, tokens);
@@ -35,7 +39,7 @@ export function IdentityRoutes() {
         );
 
         identityRouter.post(
-                'login',
+                '/login',
                 validate(schemas.LoginSchema),
                 protectHandler(async (req, res) => {
                         const { email, password } = req.body as LoginRequestDto;
@@ -52,7 +56,7 @@ export function IdentityRoutes() {
         );
 
         identityRouter.post(
-                'forgot-password',
+                '/forgot-password',
                 validate(schemas.ForgotPasswordSchema),
                 protectHandler(async (req, res) => {
                         const { email } = req.body as ForgotPasswordRequestDto;
@@ -64,7 +68,7 @@ export function IdentityRoutes() {
         );
 
         identityRouter.post(
-                'reset-password',
+                '/reset-password',
                 validate(schemas.ResetPasswordSchema),
                 protectHandler(async (req, res) => {
                         const { token, newPassword } = req.body as ResetPasswordRequestDto;

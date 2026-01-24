@@ -1,6 +1,6 @@
 import { DomainErrors } from '../../domain/errors/domainErrors.js';
 import { DomainService } from '../../domain/service/domainService.js';
-import { IdentityRepositoryPort } from '../../infrastructure/ports/IdentityRepositoryPort.js';
+import { IdentityRepositoryPort } from '../../infrastructure/ports/identityRepositoryPort.js';
 import { ResetToken } from '../../domain/entities/resetToken.js';
 
 export class ForgotPassword {

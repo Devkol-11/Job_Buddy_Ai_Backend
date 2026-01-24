@@ -47,7 +47,7 @@ export class HttpHelpers {
         static sendError(res: Response, statusCode: number, error: object) {
                 return res.status(statusCode).json({
                         status: 'error',
-                        message: error
+                        error
                 });
         }
 }

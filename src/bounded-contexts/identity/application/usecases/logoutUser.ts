@@ -1,5 +1,5 @@
 import { DomainErrors } from '../../domain/errors/domainErrors.js';
-import { IdentityRepositoryPort } from '../../infrastructure/ports/IdentityRepositoryPort.js';
+import { IdentityRepositoryPort } from '../../infrastructure/ports/identityRepositoryPort.js';
 
 interface LogoutRequestDto {
         userId: string;

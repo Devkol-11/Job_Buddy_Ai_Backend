@@ -1,12 +1,12 @@
 import { Redis } from 'ioredis';
-import { getEnv } from '../env/env.js';
-import { appLogger } from '../logger/logger.js';
+import { getEnv } from '../../env/env.js';
+import { appLogger } from '../../logger/logger.js';
 
 const envConfig = getEnv();
 const redisUrl = envConfig.REDIS_URL;
 
 export class RedisSingleton {
-        private static instance: RedisSingleton;
+        private static instance: RedisSingleton | null;
         private client: Redis;
         private isConnected: boolean = false;
 
@@ -17,7 +17,7 @@ export class RedisSingleton {
         }
 
         static getInstance() {
-                if (RedisSingleton.instance == undefined) {
+                if (RedisSingleton.instance == null) {
                         RedisSingleton.instance = new RedisSingleton();
                         return RedisSingleton.instance;
                 }
@@ -33,11 +33,11 @@ export class RedisSingleton {
 
                 const client = this.getClient();
 
-                appLogger.warn('....ATTEMPTING CONNECTION TO REDIS');
+                appLogger.info('....ATTEMPTING CONNECTION TO REDIS');
 
                 await client.connect();
 
-                appLogger.warn('....REDIS CONNECTED SUCCESSFULLY');
+                appLogger.info('....REDIS CONNECTED SUCCESSFULLY');
 
                 this.isConnected = true;
         }
@@ -47,11 +47,11 @@ export class RedisSingleton {
 
                 const client = this.getClient();
 
-                appLogger.warn('....DISCONNECTING FROM REDIS');
+                appLogger.info('....DISCONNECTING FROM REDIS');
 
                 client.disconnect();
 
-                appLogger.warn('....REDIS DISCONNECTED SUCCESSFULLY');
+                appLogger.info('....REDIS DISCONNECTED SUCCESSFULLY');
 
                 this.isConnected = false;
         }

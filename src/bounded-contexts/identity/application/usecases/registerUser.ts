@@ -2,7 +2,7 @@ import { IdentityUser } from '../../domain/aggregates/identityUser.js';
 import { RefreshToken } from '../../domain/entities/refreshToken.js';
 import { DomainErrors } from '../../domain/errors/domainErrors.js';
 import { DomainService } from '../../domain/service/domainService.js';
-import { IdentityRepositoryPort } from '../../infrastructure/ports/IdentityRepositoryPort.js';
+import { IdentityRepositoryPort } from '../../infrastructure/ports/IdentityRepositoryPort.js'
 import { RegisterRequestDto, RegisterResponseDto } from '../dtos/domainDto.js';
 
 export class RegisterUser {
@@ -18,7 +18,7 @@ export class RegisterUser {
 
                 const userExists = await this.identityRepository.existsByEmail(email);
 
-                console.log('db operation to find user success');
+                console.log('db operation to find if user exists =  success');
 
                 if (userExists) throw new DomainErrors.UserAlreadyExistsError();
 
@@ -26,7 +26,7 @@ export class RegisterUser {
 
                 console.log('password encrypt success');
 
-                const identityUser = IdentityUser.create({
+                const user = IdentityUser.create({
                         email,
                         firstName,
                         lastName,
@@ -37,17 +37,19 @@ export class RegisterUser {
 
                 const refreshToken = RefreshToken.create({
                         value,
-                        identityUserId: identityUser.id,
+                        identityUserId: user.id,
                         expiresAt: expiry
                 });
 
-                identityUser.addRefreshToken(refreshToken);
+                user.addRefreshToken(refreshToken);
 
-                await this.identityRepository.save(identityUser);
+                await this.identityRepository.save(user);
 
-                const claim = identityUser.getClaims();
+                const claim = user.getClaims();
 
                 const accessToken = this.domainService.generateAccessToken(claim);
+
+                console.log('end of register usecase reached');
 
                 //DISPATCH DOMAIN EVENTS
 

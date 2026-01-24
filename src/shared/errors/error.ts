@@ -1,41 +1,26 @@
-import { HttpStatusCodeType } from '../http/httpStatusCodes.js';
-
 export abstract class BaseError extends Error {
-        abstract type: 'Domain' | 'Infrastructure';
-        public statusCode: number;
-        public message: string;
+        abstract readonly type: 'Domain' | 'Infrastructure';
 
-        constructor(message: string, statusCode: number) {
+        constructor(public readonly message: string, public readonly statusCode: number) {
                 super(message);
-                this.statusCode = statusCode;
-                this.message = message;
+                Error.captureStackTrace(this, this.constructor);
         }
 }
 
 export class DomainError extends BaseError {
-        public type: 'Domain' | 'Infrastructure' = 'Domain';
-        public statusCode: number;
-        public message: string;
+        readonly type = 'Domain';
 
         constructor(message: string, statusCode: number) {
                 super(message, statusCode);
-                this.statusCode = statusCode;
-                this.message = message;
-                Object.setPrototypeOf(this, BaseError);
+                Object.setPrototypeOf(this, DomainError.prototype);
         }
 }
 
 export class InfrastructureError extends BaseError {
-        type: 'Domain' | 'Infrastructure' = 'Infrastructure';
-        public statusCode: number;
-        public message: string;
-        public isRetryable: boolean;
+        readonly type = 'Infrastructure';
 
-        constructor(message: string, statusCode: number, isRetryable: boolean) {
+        constructor(message: string, statusCode: number, public readonly isRetryable: boolean) {
                 super(message, statusCode);
-                this.statusCode = statusCode;
-                this.message = message;
-                this.isRetryable = isRetryable;
-                Object.setPrototypeOf(this, BaseError);
+                Object.setPrototypeOf(this, InfrastructureError.prototype);
         }
 }

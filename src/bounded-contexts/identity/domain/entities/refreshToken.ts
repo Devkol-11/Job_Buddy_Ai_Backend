@@ -31,6 +31,20 @@ export class RefreshToken extends Entity<refreshTokenProps> {
                 );
         }
 
+        static rehydrate(data: any): RefreshToken {
+                return new RefreshToken(
+                        {
+                                value: data.value,
+                                identityUserId: data.identityUserId,
+                                expiresAt: data.expiresAt,
+                                isRevoked: data.isRevoked,
+                                createdAt: data.createdAt,
+                                updatedAt: data.updatedAt
+                        },
+                        data.id
+                );
+        }
+
         isRevoked(): boolean {
                 if (this.props.isRevoked == true) {
                         return true;

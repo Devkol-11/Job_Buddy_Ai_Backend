@@ -4,11 +4,13 @@ import { TransactionClient } from 'generated/prisma/internal/prismaNamespace.js'
 import { IdentityUser } from '../../domain/aggregates/identityUser.js';
 import { RefreshToken } from '../../domain/entities/refreshToken.js';
 import { ResetToken } from '../../domain/entities/resetToken.js';
-import { IdentityRepositoryPort } from '../ports/IdentityRepositoryPort.js';
+import { IdentityRepositoryPort } from '../../infrastructure/ports/IdentityRepositoryPort.js';
 import { DomainErrors } from '../../domain/errors/domainErrors.js';
 import { HttpStatusCode } from '@src/shared/http/httpStatusCodes.js';
+import { IdentityCachePort } from '../ports/IdentityCachePort.js';
 
 export class IdentityRepository implements IdentityRepositoryPort {
+        constructor(private readonly cache: IdentityCachePort) {}
         private normalizeRefreshTokens(tokens: RefreshToken[]) {
                 return tokens.map((token) => ({
                         id: token.id,
@@ -73,6 +75,8 @@ export class IdentityRepository implements IdentityRepositoryPort {
         async save(entity: IdentityUser, trx?: TransactionClient): Promise<IdentityUser> {
                 const client = trx ? trx : dbClient;
                 const { refreshTokens, resetTokens, id, ...userData } = entity.getProps();
+                const normalizedRefreshTokens = this.normalizeRefreshTokens(refreshTokens);
+                const normalizedResetTokens = this.normalizeResetTokens(resetTokens);
 
                 try {
                         await client.identityUser.upsert({
@@ -81,24 +85,25 @@ export class IdentityRepository implements IdentityRepositoryPort {
                                         ...userData,
                                         refreshTokens: {
                                                 deleteMany: {},
-                                                create: this.normalizeRefreshTokens(refreshTokens)
+                                                create: normalizedRefreshTokens
                                         },
                                         resetTokens: {
                                                 deleteMany: {},
-                                                create: this.normalizeResetTokens(resetTokens)
+                                                create: normalizedResetTokens
                                         }
                                 },
                                 create: {
                                         id,
                                         ...userData,
                                         refreshTokens: {
-                                                create: this.normalizeRefreshTokens(refreshTokens)
+                                                create: normalizedRefreshTokens
                                         },
                                         resetTokens: {
-                                                create: this.normalizeResetTokens(resetTokens)
+                                                create: normalizedResetTokens
                                         }
                                 }
                         });
+                        await this.cache.invalidate(id);
                         return entity;
                 } catch (err) {
                         this.handleError(err, 'save');
@@ -134,6 +139,10 @@ export class IdentityRepository implements IdentityRepositoryPort {
         }
 
         async findById(id: string): Promise<IdentityUser | null> {
+                const cachedData = await this.cache.getUser(id);
+                if (cachedData) {
+                        return this.mapToDomain(cachedData);
+                }
                 const user = await dbClient.identityUser.findUnique({
                         where: { id },
                         include: { refreshTokens: true, resetTokens: true } // MUST INCLUDE BOTH
@@ -158,7 +167,7 @@ export class IdentityRepository implements IdentityRepositoryPort {
         }
 
         async existsByEmail(email: string): Promise<boolean> {
-                const count = await dbClient.identityUser.count({ where: { email } });
-                return count > 0;
+                const user = await dbClient.identityUser.findUnique({ where: { email } });
+                return user ? true : false;
         }
 }

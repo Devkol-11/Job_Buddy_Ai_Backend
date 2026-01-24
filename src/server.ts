@@ -2,7 +2,7 @@ import { createServer, type Server } from 'node:http';
 import { initializeApplication } from './app.js';
 import { loadEnv, getEnv } from './config/env/env.js';
 import { dbSetup } from './config/prisma/prisma.js';
-import { redisClient, redisSetup } from './config/redis/redis.js';
+import { redisClient, redisSetup } from './config/redis/client/redis.js';
 import { appLogger } from './config/logger/logger.js';
 
 const application = initializeApplication();

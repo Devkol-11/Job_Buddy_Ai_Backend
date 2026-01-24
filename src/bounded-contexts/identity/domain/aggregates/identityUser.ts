@@ -31,6 +31,7 @@ export class IdentityUser extends AggregateRoot<IdentityUserProps> {
                 >
         ): IdentityUser {
                 const id = randomUUID();
+
                 const user = new IdentityUser(
                         {
                                 email: props.email,
