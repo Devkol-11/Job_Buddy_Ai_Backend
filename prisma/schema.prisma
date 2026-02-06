@@ -26,6 +26,7 @@ model IdentityUser {
 
   refreshTokens RefreshToken[]
   resetTokens   ResetToken[]
+  userPreference UserPreference?
 }
 
 enum IdentityUserRole {
@@ -76,6 +77,20 @@ model JobSource {
 
   // JobSources own their listings
   listings JobListing[]
+}
+
+model UserPreference {
+  id              String   @id @db.Uuid
+  userId          String   @unique @db.Uuid // Unique ensures 1-to-1
+  categories      String[] // Postgres supports string arrays natively
+  locations       String[]
+  minimumSalary   Int      @default(0)
+  isAlertsEnabled Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // The link back to Identity
+  user IdentityUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum FeedType {

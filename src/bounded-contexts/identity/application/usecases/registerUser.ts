@@ -7,6 +7,7 @@ import { RefreshTokenRepositoryPort } from '../ports/refreshRepositoryTokenPort.
 import { IdentityEventBusPort } from '../ports/identityEventBusPort.js';
 import { RegisterRequestDto, RegisterResponseDto } from '../dtos/domainDto.js';
 import { TransactionScriptPort } from '../ports/transactionManagerPort.js';
+import { IdentityUserRole } from '../../domain/enums/domainEnums.js';
 
 export class RegisterUser {
         constructor(
@@ -30,7 +31,8 @@ export class RegisterUser {
                         email,
                         firstName,
                         lastName,
-                        passwordHash
+                        passwordHash,
+                        role: IdentityUserRole.USER
                 });
 
                 const { value, expiry } = this.domainService.generateRefreshTokenWithExpiry();

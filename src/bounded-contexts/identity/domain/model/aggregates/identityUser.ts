@@ -1,6 +1,6 @@
 import { AggregateRoot } from '@src/shared/ddd/agggragateRoot.Base.js';
 import { randomUUID } from 'crypto';
-import { IdentityUserRole } from '../../enums/domainEnums.js';
+import { IdentityUserRoleType, IdentityUserRole } from '../../enums/domainEnums.js';
 import { IdentityStatus } from '../../enums/domainEnums.js';
 import { DomainEvents } from '../../events/domainEvents.js';
 
@@ -9,7 +9,7 @@ interface IdentityUserProps {
         email: string;
         firstName: string;
         lastName: string;
-        role: IdentityUserRole;
+        role: IdentityUserRoleType;
         passwordHash: string;
         status: IdentityStatus;
         createdAt: Date;
@@ -80,10 +80,6 @@ export class IdentityUser extends AggregateRoot<IdentityUserProps> {
                                 email: this.props.email
                         })
                 );
-        }
-
-        getProps() {
-                return { id: this.id, ...this.props };
         }
 
         getClaims() {

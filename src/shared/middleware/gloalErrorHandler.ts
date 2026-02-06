@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { DomainError, InfrastructureError, BaseError } from '../errors/error.js';
+import { DomainErrorBase, InfrastructureErrorBase, BaseError } from '../errors/error.js';
 import { HttpStatusCode } from '../http/httpStatusCodes.js';
 import { HttpHelpers } from '../http/httpHelpers.js';
 import { ZodError } from 'zod';
@@ -22,7 +22,7 @@ export function applicationErrorHandler(err: any, _req: Request, res: Response, 
         }
 
         //  Handle your Custom Domain Errors (Business Rules)
-        if (err instanceof DomainError) {
+        if (err instanceof DomainErrorBase) {
                 return HttpHelpers.sendError(res, err.statusCode, {
                         status: 'domain_error',
                         message: err.message
@@ -30,7 +30,7 @@ export function applicationErrorHandler(err: any, _req: Request, res: Response, 
         }
 
         // Handle Infrastructure Errors (Database, Redis, etc.)
-        if (err instanceof InfrastructureError) {
+        if (err instanceof InfrastructureErrorBase) {
                 return HttpHelpers.sendError(res, err.statusCode, {
                         status: 'infrastructure_error',
                         message: err.message,

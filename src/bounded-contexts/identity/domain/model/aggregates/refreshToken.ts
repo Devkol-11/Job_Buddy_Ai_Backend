@@ -1,5 +1,6 @@
 import { AggregateRoot } from '@src/shared/ddd/agggragateRoot.Base.js';
 import { randomUUID } from 'node:crypto';
+import { DomainErrors } from '../../exceptions/domainErrors.js';
 
 interface refreshTokenProps {
         id: string;
@@ -49,7 +50,13 @@ export class RefreshToken extends AggregateRoot<refreshTokenProps> {
                 return { id: this.id, ...this.props };
         }
 
-        get isRevoked(): boolean {
+        public validateRevocation() {
+                if (this.props.isRevoked == true) {
+                        throw new DomainErrors.InvalidRefreshTokenError();
+                }
+        }
+
+        public isRevoked(): boolean {
                 if (this.props.isRevoked == true) {
                         return true;
                 }

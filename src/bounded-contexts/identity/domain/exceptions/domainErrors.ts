@@ -1,4 +1,3 @@
-import { IDomainEvents } from '@src/shared/ddd/domainEvents.Base.js';
 import { DomainError } from '@src/shared/errors/error.js';
 import { HttpStatusCode } from '@src/shared/http/httpStatusCodes.js';
 

@@ -40,4 +40,17 @@ export class RefreshTokenRepository implements RefreshTokenRepositoryPort {
                         }
                 });
         }
+
+        async deleteAllForUser(userId: string, trx?: Prisma.TransactionClient): Promise<void> {
+                const client = trx ? trx : dbClient
+                await client.refreshToken.deleteMany({ where: { identityUserId: userId } })
+                return
+        }
+
+        async delete(token: RefreshToken, trx?: Prisma.TransactionClient): Promise<void> {
+                const client = trx ? trx : dbClient
+                const tokenValue = token.getProps().value
+                await client.refreshToken.delete({ where: { value: tokenValue } })
+                return
+        }
 }

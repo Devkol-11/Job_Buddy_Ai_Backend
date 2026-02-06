@@ -11,8 +11,7 @@ interface LogoutRequestDto {
 export class LogoutUser {
         constructor(
                 private readonly identityRepository: IdentityRepositoryPort,
-                private readonly refreshTokenRepository: RefreshTokenRepositoryPort,
-                private readonly unitOfWork: TransactionScriptPort
+                private readonly refreshTokenRepository: RefreshTokenRepositoryPort
         ) {}
 
         async execute(data: LogoutRequestDto): Promise<{ message: string }> {
@@ -30,10 +29,7 @@ export class LogoutUser {
 
                 token.revoke();
 
-                await this.unitOfWork.run(async (trx) => {
-                        await this.refreshTokenRepository.save(token, trx);
-                        await this.identityRepository.save(user, trx);
-                });
+                await this.refreshTokenRepository.save(token);
 
                 return {
                         message: 'Logged out successfully'

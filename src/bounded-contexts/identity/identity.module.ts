@@ -3,6 +3,7 @@ import { LoginUser } from './application/usecases/loginUser.js';
 import { LogoutUser } from './application/usecases/logoutUser.js';
 import { ResetPassword } from './application/usecases/resetPassword.js';
 import { ForgotPassword } from './application/usecases/forgotPassword.js';
+import { TokenRefresh } from './application/usecases/tokenRefresh.js';
 import { IdentityRepository } from './infrastructure/adapters/perisitence/identityRepo.js';
 import { ResetTokenRepository } from './infrastructure/adapters/perisitence/resetTokenRepo.js';
 import { RefreshTokenRepository } from './infrastructure/adapters/perisitence/refreshTokenRepo.js';
@@ -40,7 +41,13 @@ export const usecase = {
                 prismaTransactionManager,
                 domainService
         ),
-        logout: new LogoutUser(identityRepository, refreshTokenRepository, prismaTransactionManager),
+        logout: new LogoutUser(identityRepository, refreshTokenRepository),
+        tokenRefresh: new TokenRefresh(
+                refreshTokenRepository,
+                identityRepository,
+                domainService,
+                prismaTransactionManager
+        ),
         forgotPassword: new ForgotPassword(
                 identityRepository,
                 resetTokenReposiotry,

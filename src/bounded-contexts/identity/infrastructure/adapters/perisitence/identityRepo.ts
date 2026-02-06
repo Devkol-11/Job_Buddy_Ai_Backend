@@ -10,7 +10,7 @@ import { HttpStatusCode } from '@src/shared/http/httpStatusCodes.js';
 import { IdentityCachePort } from '../../../application/ports/identityCachePort.js';
 
 export class IdentityRepository implements IdentityRepositoryPort {
-        constructor(private readonly cache: IdentityCachePort) {}
+        constructor(private readonly cache: IdentityCachePort) { }
 
         private mapToDomain(raw: any): IdentityUser {
                 const refreshTokens = raw.refreshTokens.map((t: any) =>
@@ -74,6 +74,7 @@ export class IdentityRepository implements IdentityRepositoryPort {
                         this.handleError(err, 'save');
                 }
         }
+
 
         async findByEmail(email: string): Promise<IdentityUser | null> {
                 const user = await dbClient.identityUser.findUnique({
