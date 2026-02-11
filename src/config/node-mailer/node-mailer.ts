@@ -1,30 +1,36 @@
 import { createTransport, type Transporter } from 'nodemailer';
 
-export class EmailTransport  {
+export class EmailTransport {
         private static transporter: Transporter;
-        private static transportOptions: any;
 
-        private constructor() {
-                EmailTransport.transportOptions = {
-                        host: '',
-                        port: '',
+        private static init() {
+                if (this.transporter) return;
+
+                this.transporter = createTransport({
+                        host: process.env.MAIL_HOST,
+                        port: Number(process.env.MAIL_PORT),
                         auth: {
-                                user: '',
-                                pass: ''
+                                user: process.env.MAIL_USER,
+                                pass: process.env.MAIL_PASS
                         }
-                };
-
-                EmailTransport.transporter = createTransport(EmailTransport.transportOptions);
+                });
         }
 
-        static async sendMail(input: { email: string; subject: string; body: string }): Promise<void> {
+        static async sendMail(input: {
+                email: string;
+                subject: string;
+                body: string;
+                firstName: string;
+        }): Promise<void> {
+                this.init(); // Ensure transporter exists
+
                 const mailOptions = {
-                        from: '',
+                        from: '"JobBuddy AI" <noreply@jobBuddy.ai>',
                         to: input.email,
-                        subject: input.subject,
-                        body: input.body
+                        subject: input.subject || `Hello ${input.firstName}`,
+                        html: input.body // Using 'html' instead of 'body' for Nodemailer compatibility
                 };
 
-                await EmailTransport.transporter.sendMail(mailOptions);
+                await this.transporter.sendMail(mailOptions);
         }
 }

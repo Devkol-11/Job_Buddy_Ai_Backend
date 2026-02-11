@@ -1,0 +1,96 @@
+Up next this : AI Assistance Context
+Status: Not implemented
+Purpose: Guided improvement, not content ownership
+
+
+What this context is about
+This context exists to augment the user’s thinking and presentation,
+not to fabricate identity.
+Key principle:
+AI helps the user express what already exists more
+clearly, more relevantly, and more ATS-friendly.
+The AI:
+·        Improves wording
+·        Highlights gaps
+·        Tailors structure to a job
+It does not:
+·        Invent experience
+·        Store canonical CV data
+·        Own the resume as a domain object
+This keeps the system honest, auditable, and legally safer.
+
+
+Core Design Philosophy
+·        Stateless by default
+·        Outputs are suggestions, not
+facts
+·        User remains the final authority
+
+
+Aggregate Roots
+None (by design)
+There is no long-lived domain state that requires invariants.
+AI outputs are:
+·        Derived
+·        Regeneratable
+·        Non-authoritative
+
+
+Entities & Value Objects
+Entities (Ephemeral / Derived)
+AIResumeSuggestion
+Represents an AI-generated improvement to an existing CV section.
+Examples:
+·        Rewritten bullet point
+·        Rephrased summary
+·        Optimized skill grouping
+
+
+Value Objects
+ResumeSnapshot
+·        A frozen view of the user’s CV at request time
+·        Prevents AI from mutating live data
+
+JobTarget
+·        Extracted signals from a job description
+·        Keywords, seniority, responsibilities
+
+ATSOptimizationProfile
+·        Formatting rules
+·        Keyword density constraints
+·        Verb/action consistency
+
+
+Minimal Use Cases
+Commands (AI generation actions)
+·        ImproveResumeSection(ResumeId,
+SectionType)
+
+Rewrites content for clarity and impact without changing meaning.
+·        TailorResumeForJob(ResumeId, JobId)
+
+Adjusts wording and emphasis to match a specific job description in an
+ATS-friendly way.
+·        ExtractJobRequirements(JobId)
+
+Identifies implicit expectations, tools, and skills not explicitly listed.
+·        SuggestSkillGaps(ResumeId, JobId)
+
+Highlights missing or underrepresented skills relative to the job.
+
+
+Queries (Read-only, safe retrieval)
+·        GetLastAISuggestions(UserId)
+
+Fetches the most recent suggestions for review.
+·        PreviewTailoredResume(ResumeId, JobId)
+
+Returns a non-persisted preview of how the CV would look when tailored.
+
+
+Key Invariants & Constraints
+·        AI output must be traceable to source input
+·        No AI output is auto-applied
+·        Suggestions expire and can be regenerated
+·        AI cannot introduce experience not present in
+the resume-------------------------------------------------------------------------------------------NOW READ !!!! : ---> It seems like there are no aggregates for this as shown here , and there are very little value objects -- also there was an Entity suggested --- Now what i want to know if if there is anything to be persisted in this context. If there is anything that requires a table for this context for the purpose of persistence , then indicate it , create the table ( add to the prisma schema) and if we will need to create its entity equivalent for protecting any invariants --Note this is strict ! if we do not need to persist anything , then there is no need for a repo port and implementation - therefore we reduce time spent on this context - Also we shall be using a port for the AI adapter , so look through the usecases and define an SOLID interface/port  that any AI implementation adapter must follow -- We shall touch more on the AI adapter soon ( i have a special feature i need us to create there , but ill save it for later ) Also take note of the usecases and spilt them into commands and queries -----DO THIS AS ACUURATELY AS POSSIBLE

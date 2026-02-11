@@ -12,7 +12,7 @@ export class AddApplicationNote {
                         throw new JobTrackingException.ApplicationNotFound('Job Application not found');
 
                 // Ownership Guard
-                if ((application as any).props.userId !== command.userId) {
+                if (application.props.userId !== command.userId) {
                         throw new JobTrackingException.UnauthorizedAccess();
                 }
 

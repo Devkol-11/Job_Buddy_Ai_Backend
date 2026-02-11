@@ -13,3 +13,19 @@ export class Application_Queue {
                 return new Queue(queueName, { connection: Application_Queue.client });
         }
 }
+
+export class NotificationDispatcher {
+        private queue: Queue = Application_Queue.create('EMAIL_NOTIFICATION');
+
+        async dispatch(name: string, data: object) {
+                try {
+                        await this.queue.add(name, data, {
+                                attempts: 3,
+                                backoff: { type: 'exponential', delay: 1000 }
+                        });
+                } catch (error) {
+                        console.error(`Failed to push job ${name} to queue:`, error);
+                        throw error;
+                }
+        }
+}

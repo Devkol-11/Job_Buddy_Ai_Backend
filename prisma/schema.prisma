@@ -177,17 +177,67 @@ model ApplicationNote {
   @@index([applicationId])
 }
 
-model AlertUser {
-  id             String   @id @db.Uuid
-  identityUserId String   @db.Uuid
-  email          String
-  isPaused       Boolean  @default(false)
-  createdAt      DateTime
+// Purpose: Audit trail and retrieval of non-authoritative suggestions
+
+model AIResumeSuggestion {
+  id              String   @id @db.Uuid
+  userId          String   @db.Uuid
+  resumeId        String   @db.Uuid
+  jobId           String?  @db.Uuid // Optional: only for tailoring/gap analysis
+  suggestionType  String   // REWRITE, TAILORING, GAP_ANALYSIS
+  originalContent Json     // The "ResumeSnapshot" at request time
+  suggestedContent Json     // The AI output
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
 }
 
-model AlertRule {
-  id          String   @id @db.Uuid
-  alertUserId String
-  keyword     String?
-  createdAt   DateTime
+// Notification Context
+model NotificationHistory {
+  id              String   @id @db.Uuid
+  userId          String   @db.Uuid
+  type            String   // RECOMMENDATION_READY, APPLICATION_REMINDER, etc.
+  channel         String   // EMAIL
+  recipient       String   // The email address used at the time
+  subject         String
+  content         String   @db.Text
+  status          String   // SENT, FAILED, QUEUED
+  errorMessage    String?
+  sentAt          DateTime @default(now())
+
+  @@index([userId])
+}
+
+// --- ANALYTICS CONTEXT TABLES ---
+
+model ApplicationMetric {
+  id            String   @id @db.Uuid
+  userId        String   @db.Uuid
+  jobId         String   @db.Uuid
+  status        String   // APPLIED, INTERVIEW, OFFER, REJECTED
+  responseTime  Int?     // Days between "Applied" and "Interview/Response"
+  appliedAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AIUsageMetric {
+  id             String   @id @db.Uuid
+  userId         String   @db.Uuid
+  featureName    String   // TAILOR, IMPROVE, GAP_ANALYSIS
+  tokensUsed     Int?     // Optional: for cost tracking
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model UserActivityMetric {
+  id        String   @id @db.Uuid
+  userId    String   @db.Uuid
+  action    String   // JOB_VIEW, JOB_SAVE, LOGIN
+  createdAt DateTime @default(now())
+
+  @@index([userId, action])
 }

@@ -8,6 +8,7 @@ interface AppEnvConfig {
         REDIS_URL: string;
         NODE_ENV: string;
         JWT_SECRET: string;
+        HUGGING_FACE_API_KEY: string;
 }
 
 let envConfig: AppEnvConfig | undefined = undefined;
@@ -38,7 +39,8 @@ export function loadEnv() {
                 NODE_ENV: process.env.NODE_ENV,
                 DATABASE_URL: process.env.DATABASE_URL,
                 REDIS_URL: process.env.REDIS_URL,
-                JWT_SECRET: process.env.JWT_SECRET
+                JWT_SECRET: process.env.JWT_SECRET,
+                HUGGING_FACE_API_KEY: process.env.HUGGING_FACE_API_KEY
         });
 }
 

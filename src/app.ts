@@ -6,6 +6,8 @@ import { JobFeedIngestionRoutes } from './bounded-contexts/jobIngesttion & catal
 import { UserPreferenceRoutes } from './bounded-contexts/userPreferences/presentation/routes/routes.js';
 import { RecommendationRoutes } from './bounded-contexts/reccomendations/presentation/routes.js';
 import { JobTrackingRoutes } from './bounded-contexts/jobTracking/presentation/routes.js';
+import { AiAssistanceRoutes } from './bounded-contexts/aiAssistance/presentation/routes.js';
+import { AnalyticsRoutes } from './bounded-contexts/analytics/presentation/routes.js';
 import { applicationErrorHandler } from './shared/middleware/gloalErrorHandler.js';
 
 export function initializeApplication(): Express.Application {
@@ -14,6 +16,8 @@ export function initializeApplication(): Express.Application {
         const userPreferenceRoutes = UserPreferenceRoutes();
         const recommendationRoutes = RecommendationRoutes();
         const jobTrackingRoutes = JobTrackingRoutes();
+        const aiAssistanceRoutes = AiAssistanceRoutes();
+        const analyticsRoute = AnalyticsRoutes();
 
         const app = Express();
         const baseUrl = '/api/v1';
@@ -32,6 +36,8 @@ export function initializeApplication(): Express.Application {
         app.use(`${baseUrl}/preference`, userPreferenceRoutes);
         app.use(`${baseUrl}/recommendation`, recommendationRoutes);
         app.use(`${baseUrl}/jobTracking`, jobTrackingRoutes);
+        app.use(`${baseUrl}/aiAssistance`, aiAssistanceRoutes);
+        app.use(`${baseUrl}/analytics`, analyticsRoute);
 
         app.use(applicationErrorHandler);
         return app;
