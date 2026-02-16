@@ -1,33 +1,29 @@
+import { Job } from 'bullmq';
 import { Application_Worker } from '@src/config/redis/workers/worker.js';
-import { EmailTransport } from '@src/config/node-mailer/node-mailer.js';
+import { EmailService } from '@src/config/node-mailer/emailService/emailService.js';
 
-export function startNotificationWorker() {
-        Application_Worker.create('EMAIL_NOTIFICATION', async (job) => {
-                const { email, firstName, template, data, id } = job.data;
+/**
+ * Registry: Maps job.name (Event Name) to a specific handler function.
+ */
+const HandlerRegistry: Record<string, (data: any) => Promise<void>> = {
+        USER_REGISTERED: (data) => EmailService.sendWelcome(data.email, data.firstName),
+        FORGOT_PASSWORD: (data) => EmailService.sendForgotPassword(data.email, data.token),
+        PASSWORD_RESET_SUCCESS: (data) => EmailService.sendPasswordResetSuccess(data.email),
+        RECOMMENDATION_READY: (data) => EmailService.send(data.email, data.template)
+};
 
-                console.log(`[Worker] Processing ${template} for ${email} (ID: ${id})`);
+export function startEmailWorker() {
+        console.log(' Email Notification Worker: Operational');
 
-                const simpleBody = `
-            <h3>Hello ${firstName},</h3>
-            <p>This is a ${template} notification from JobBuddy AI.</p>
-            <pre>${JSON.stringify(data, null, 2)}</pre>
-        `;
+        return Application_Worker.create('EMAIL_NOTIFICATION', async (job: Job) => {
+                // Use job.name to find the right function in our map
+                const handler = HandlerRegistry[job.name];
 
-                try {
-                        await EmailTransport.sendMail({
-                                email,
-                                firstName,
-                                subject: `JobBuddy AI: ${template.replace('_', ' ')}`,
-                                body: simpleBody
-                        });
-
-                        console.log(`[Worker] Email sent successfully to ${email}`);
-                } catch (error) {
-                        console.error(`[Worker] Error sending email:`, error);
-                        // Re-throw so BullMQ knows to retry based on your backoff settings
-                        throw error;
+                if (!handler) {
+                        console.error(`[EmailWorker] No handler registered for: ${job.name}`);
+                        return;
                 }
-        });
 
-        console.log('🚀 Notification Worker initialized and listening for jobs...');
+                await handler(job.data);
+        });
 }

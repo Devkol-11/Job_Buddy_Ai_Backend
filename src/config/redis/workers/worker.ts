@@ -22,3 +22,5 @@ export class Application_Worker {
                 );
         }
 }
+
+export class EmailNotificationWorker {}

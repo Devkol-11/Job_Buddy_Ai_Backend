@@ -7,7 +7,7 @@ export namespace IdentityEvents {
                 readonly data: Record<string, unknown>;
 
                 constructor(data: { userId: string; token: string; email: string }) {
-                        this.eventName = 'Token:Added';
+                        this.eventName = 'TOKEN_ADDED';
                         this.occurredAt = new Date();
                         this.data = data;
                 }
@@ -19,7 +19,7 @@ export namespace IdentityEvents {
                 readonly data: Record<string, unknown>;
 
                 constructor(data: { userId: string; email: string }) {
-                        this.eventName = 'User:Registered';
+                        this.eventName = 'USER_REGISTERED';
                         this.occurredAt = new Date();
                         this.data = data;
                 }
@@ -31,7 +31,7 @@ export namespace IdentityEvents {
                 readonly data: Record<string, unknown>;
 
                 constructor(data: { userId: string; email: string }) {
-                        this.eventName = 'Password:Reset';
+                        this.eventName = 'PASSWORD_RESET';
                         this.occurredAt = new Date();
                         this.data = data;
                 }
@@ -42,7 +42,7 @@ export namespace IdentityEvents {
                 readonly occurredAt: Date;
                 readonly data: Record<string, unknown>;
                 constructor(data: { userId: string; email: string; token: string }) {
-                        this.eventName = 'Forgot:Password';
+                        this.eventName = 'USER_FORGOT_PASSWORD';
                         this.occurredAt = new Date();
                         this.data = data;
                 }

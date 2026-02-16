@@ -4,11 +4,13 @@ import { IdentityRepository } from '../Repository/identityRepo.js';
 import { ResetTokenRepository } from '../Repository/resetTokenRepo.js';
 import { IdentityEvents } from '../helpers/events/identityEvents.js';
 import { randomUUID } from 'node:crypto';
+import { EmailNotificationDispatcher } from '@src/config/redis/jobQueue/Queue.js';
 
 export class ForgotPassword {
         private identityRepo: IdentityRepository = new IdentityRepository();
         private identityService: IdentityService = new IdentityService();
         private resetTokenRepo: ResetTokenRepository = new ResetTokenRepository();
+        private emailNotificationDispatcher: EmailNotificationDispatcher = new EmailNotificationDispatcher();
 
         async execute(email: string): Promise<{ message: string }> {
                 const user = await this.identityRepo.findByEmail(email);
@@ -40,8 +42,16 @@ export class ForgotPassword {
 
                 await this.resetTokenRepo.save(resetToken);
 
-                // Emit event for sending email (handled by a separate listener)
-                // Push the event / Job to the Email Notification Queue.
+                const forgotPasswordEvent = new IdentityEvents.UserForgotPasswordEvent({
+                        userId: user.id,
+                        email: user.email,
+                        token: value
+                });
+
+                await this.emailNotificationDispatcher.dispatch(
+                        forgotPasswordEvent.eventName,
+                        forgotPasswordEvent.data
+                );
 
                 return { message: 'If an account exists, a reset link has been sent.' };
         }

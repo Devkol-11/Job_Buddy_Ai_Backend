@@ -71,10 +71,13 @@ export class RegisterUser {
                         email: newUser.email
                 });
 
-                await this.emailNotificationDispatcher.dispatch('USER_REGISTERED', userRegisteredEvent);
+                await this.emailNotificationDispatcher.dispatch(
+                        userRegisteredEvent.eventName,
+                        userRegisteredEvent.data
+                );
 
                 return {
-                        message: 'Regisration successful ',
+                        message: 'Registration successful ',
                         data: {
                                 email,
                                 firstName,

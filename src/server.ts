@@ -4,6 +4,8 @@ import { loadEnv, getEnv } from './config/env/env.js';
 import { dbSetup } from './config/prisma/prisma.js';
 import { redisClient, redisSetup } from './config/redis/client/redis.js';
 import { appLogger } from './config/logger/logger.js';
+import { startEmailWorker } from './modules/notifications/workers/notificationWorker.js';
+import { start_JobCatalog_Cron } from './modules/jobCatalog/jobCatalogmodule.js';
 
 const application = initializeApplication();
 const applicationServer: Server = createServer(application);
@@ -20,6 +22,9 @@ async function initializeServer(applicationServer: Server): Promise<void> {
         await dbSetup.connectDb();
 
         await redisSetup.connect();
+
+        startEmailWorker();
+        start_JobCatalog_Cron();
 
         applicationServer.listen(PORT, () => {
                 console.log(`....SERVER RUNNING ON PORT : ${PORT}`);

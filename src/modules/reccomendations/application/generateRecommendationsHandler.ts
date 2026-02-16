@@ -1,11 +1,11 @@
-import { DispatchNotification } from '@src/modules/notifications/usecases/dispatchNotificationHandler.js';
+import { EmailNotificationDispatcher } from '@src/config/redis/jobQueue/Queue.js';
 import { RecommendationResultRepository } from '../repository/recommendationResultRepo.js';
 import { randomUUID } from 'node:crypto';
 import { RecommendationResult } from 'generated/prisma/client.js';
 
 export class GenerateRecommendations {
         private repo = new RecommendationResultRepository();
-        private notifier = new DispatchNotification();
+        private notifier = new EmailNotificationDispatcher();
 
         async execute(command: { userId: string }): Promise<void> {
                 //  Direct Data Fetching (Replacing the Bridge/Port)
